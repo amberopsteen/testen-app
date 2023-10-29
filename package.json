@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "scripts": {
+    "start": "tsc && node dist/index.js",
+    "test": "jest --coverage",
+    "clear-cache": "jest --clearCache"
+  },
+  "dependencies": {
+    "@types/jest": "^29.5.6",
+    "@types/node": "^20.8.8",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2"
+  }
+}
