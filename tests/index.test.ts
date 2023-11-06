@@ -1,117 +1,73 @@
-import { main } from "../src/index";
 import { getPostalCode } from "../src/getPostalCode";
 import { postalCodeIsAllowed } from "../src/postalCodeIsAllowed";
-import { userHasPartner } from "../src/userHasPartner";
-import { getAnnualIncome } from "../src/getAnnualIncome";
-import { userHasStudyDebt } from "../src/userHasStudyDebt";
-import { mortgageWithStudyDebt } from "../src/mortgageWithStudyDebt";
 import { getInterestPeriod } from "../src/getInterestPeriod";
 import { interestPeriodAllowed } from "../src/interestPeriodAllowed";
 
 
+jest.mock("../src/getUserInput", () => {
+  return {
+    getUserInput: jest.fn(),
+  };
+});
 
+describe("Integration Test with Mocked User Input", () => {
+  it("test getPostalCode and postalCodeIsAllowed where postal code is allow", async () => {
+    const getUserInputMock = require("../src/getUserInput")
+      .getUserInput as jest.Mock;
 
-jest.mock("../src/getPostalCode");
-jest.mock("../src/postalCodeIsAllowed");
-jest.mock("../src/interestPeriodAllowed");
-jest.mock("../src/userHasStudyDebt");
-jest.mock("../src/mortgageWithStudyDebt");
-jest.mock("../src/userHasPartner");
-jest.mock("../src/getAnnualIncome");
-jest.mock("../src/getInterestPeriod");
+    getUserInputMock.mockResolvedValueOnce("1234");
 
+    const postalCode = await getPostalCode();
+    expect(postalCode).toBe(1234);
 
-describe("main function", () => {
-  beforeEach(() => {
-    (getPostalCode as jest.Mock).mockClear();
-    (userHasStudyDebt as jest.Mock).mockClear();
-    (mortgageWithStudyDebt as jest.Mock).mockClear();
-    (userHasPartner as jest.Mock).mockClear();
-    (getAnnualIncome as jest.Mock).mockClear();
+    const isAllowed = await postalCodeIsAllowed(postalCode);
+    expect(isAllowed).toBe(true);
   });
 
-  //integratietest 1:
-  it("should handle invalid postal code input", async () => {
-    (getPostalCode as jest.Mock).mockResolvedValue(NaN);
+  it("test getPostalCode and postalCodeIsAllowed where postal code is not allow", async () => {
+    const getUserInputMock = require("../src/getUserInput")
+      .getUserInput as jest.Mock;
 
-    const consoleLogMock = jest
-      .spyOn(console, "log")
-      .mockImplementation(() => {});
+    getUserInputMock.mockResolvedValueOnce("9679");
 
-    await main();
+    const postalCode = await getPostalCode();
+    expect(postalCode).toBe(9679);
 
-    expect(getPostalCode).toHaveBeenCalled();
-    expect(consoleLogMock).toHaveBeenCalledWith(
-      "Voer een 4-cijferige postcode in."
-    );
-
-    consoleLogMock.mockRestore();
+    const isAllowed = await postalCodeIsAllowed(postalCode);
+    expect(isAllowed).toBe(false);
   });
+  it("test getInterestPeriod and interestPeriodAllowed where interestperiode is allow", async () => {
+    const getUserInputMock = require("../src/getUserInput")
+      .getUserInput as jest.Mock;
 
-  //integratietest 2:
-  it("should handle postal code not allowed", async () => {
-    (getPostalCode as jest.Mock).mockResolvedValue("9682");
+    getUserInputMock.mockResolvedValueOnce("10"); 
 
-    (postalCodeIsAllowed as jest.Mock).mockReturnValue(false);
+    const log = jest.spyOn(console, "log");
+    log.mockImplementation(() => {});
 
-    const consoleLogMock = jest
-      .spyOn(console, "log")
-      .mockImplementation(() => {});
+    const interestPeriod = await getInterestPeriod();
+    expect(interestPeriod).toBe(10);
 
-    await main();
+    log.mockRestore();
 
-    expect(getPostalCode).toHaveBeenCalled();
-    expect(postalCodeIsAllowed).toHaveBeenCalledWith("9682");
-    expect(consoleLogMock).toHaveBeenCalledWith(
-      "Sorry, u kunt geen hypotheek krijgen omdat u in een aardbevingszone woont."
-    );
-
-    consoleLogMock.mockRestore();
+    const isAllowed = interestPeriodAllowed(interestPeriod);
+    expect(isAllowed).toBe(true);
   });
+  it("test getInterestPeriod and interestPeriodAllowed where interestperiode is not allow", async () => {
+    const getUserInputMock = require("../src/getUserInput")
+      .getUserInput as jest.Mock;
 
-  //integratietest 3:
-  it("should handle valid postal code input", async () => {
-    (getPostalCode as jest.Mock).mockResolvedValue("1234"); 
-  
-    const consoleLogMock = jest
-      .spyOn(console, "log")
-      .mockImplementation(() => {});
-  
-    await main();
-  
-    expect(getPostalCode).toHaveBeenCalled();
-    expect(consoleLogMock).not.toHaveBeenCalledWith(
-      "Voer een 4-cijferige postcode in."
-    ); 
-  
-    consoleLogMock.mockRestore();
-  });
+    getUserInputMock.mockResolvedValueOnce("15"); 
 
-  
-  //integratietest 4:
-  it("should handle a valid interest period choice", async () => {
-    (getPostalCode as jest.Mock).mockResolvedValue("1234");
-    (postalCodeIsAllowed as jest.Mock).mockReturnValue(true);
-    (userHasPartner as jest.Mock).mockReturnValue(false);
-    (getAnnualIncome as jest.Mock).mockResolvedValue(50000);
-    (userHasStudyDebt as jest.Mock).mockReturnValue(false);
-    (getInterestPeriod as jest.Mock).mockResolvedValue(10); 
-    (interestPeriodAllowed as jest.Mock).mockReturnValue(true);
-  
-    const consoleLogMock = jest
-      .spyOn(console, "log")
-      .mockImplementation(() => {});
-  
-    await main();
-  
-    expect(consoleLogMock).not.toHaveBeenCalledWith(
-      "Ongeldige keuze. Kies een rentevaste periode van 1, 5, 10, 20 of 30 jaar."
-    );
-  
-    consoleLogMock.mockRestore();
+    const log = jest.spyOn(console, "log");
+    log.mockImplementation(() => {});
+
+    const interestPeriod = await getInterestPeriod();
+    expect(interestPeriod).toBe(15);
+
+    log.mockRestore();
+
+    const isAllowed = interestPeriodAllowed(interestPeriod);
+    expect(isAllowed).toBe(false);
   });
-  
-  
-  
-  
 });
